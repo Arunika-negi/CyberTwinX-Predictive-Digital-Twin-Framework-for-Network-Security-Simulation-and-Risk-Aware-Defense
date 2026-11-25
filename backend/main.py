@@ -139,6 +139,10 @@ def assess_asset_risk(request: AssetRiskAssessmentRequest):
         # Find vulnerabilities for discovered services
         matching_results = match_asset_services(request.asset)
 
+        print("\n========== VULNERABILITY MATCHER OUTPUT ==========")
+        print(matching_results)
+        print("=================================================\n")
+
         assessments = []
 
         for service in matching_results["service_results"]:
@@ -173,10 +177,21 @@ def assess_asset_risk(request: AssetRiskAssessmentRequest):
                 })
 
         assessments.sort(
-            key=lambda item: item["risk_assessment"][
-                "contextual_risk_score"
-            ],
+            key=lambda item: (
+                item["risk_assessment"]["contextual_risk_score"] is not None,
+                item["risk_assessment"]["contextual_risk_score"] or 0
+            ),
             reverse=True
+        )
+
+        completed_count = sum(
+            1 for item in assessments
+            if item["risk_assessment"]["assessment_status"] == "completed"
+        )
+
+        pending_count = sum(
+            1 for item in assessments
+            if item["risk_assessment"]["assessment_status"] == "pending_context"
         )
 
         return {
@@ -184,6 +199,8 @@ def assess_asset_risk(request: AssetRiskAssessmentRequest):
             "asset_id": request.asset.asset_id,
             "asset_name": request.asset.name,
             "total_confirmed_vulnerabilities": len(assessments),
+            "completed_assessments": completed_count,
+            "pending_assessments": pending_count,
             "risk_assessments": assessments
         }
 
