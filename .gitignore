@@ -18,3 +18,5 @@ reports/*.csv
 
 # IDE
 .vscode/
+
+data/processed/asset_inventory.json

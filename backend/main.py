@@ -9,7 +9,8 @@ from backend.services.kev_loader import (
 )
 
 from backend.services.nvd_loader import fetch_cve
-
+# Network Discovery module
+from backend.api.network import router as network_router
 
 app = FastAPI(
     title="CyberTwin-X",
@@ -17,6 +18,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Register Network Discovery API
+app.include_router(network_router)
 
 @app.get("/")
 def home():
