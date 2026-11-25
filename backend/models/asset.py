@@ -14,6 +14,7 @@ class Service(BaseModel):
     state: Optional[str] = None
     cpe: list[str] = Field(default_factory=list)
 
+
 class Asset(BaseModel):
     asset_id: str
     name: str
@@ -22,6 +23,5 @@ class Asset(BaseModel):
     zone: str
     criticality: int = Field(ge=1, le=10)
     operating_system: Optional[str] = None
-
-    # Services discovered through Nmap
     services: list[Service] = Field(default_factory=list)
+
