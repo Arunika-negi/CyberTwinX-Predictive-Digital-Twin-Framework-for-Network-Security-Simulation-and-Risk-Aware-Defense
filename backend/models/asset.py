@@ -12,7 +12,7 @@ class Service(BaseModel):
     port: Optional[int] = None
     protocol: Optional[str] = None
     state: Optional[str] = None
-
+    cpe: list[str] = Field(default_factory=list)
 
 class Asset(BaseModel):
     asset_id: str
