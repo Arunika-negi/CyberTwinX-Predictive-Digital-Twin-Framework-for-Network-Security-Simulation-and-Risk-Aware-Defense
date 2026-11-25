@@ -1,4 +1,8 @@
+from backend.models.risk import RiskAssessmentRequest
 
+from backend.services.risk_engine import (
+    calculate_contextual_risk
+)
 import requests
 
 from fastapi import FastAPI, HTTPException
@@ -100,6 +104,24 @@ def get_nvd_cve(cve_id: str):
             status_code=502,
             detail=f"NVD API request failed: {error}"
         )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error)
+        )
+
+
+@app.post("/risk/assess")
+def assess_risk(request: RiskAssessmentRequest):
+
+    try:
+        result = calculate_contextual_risk(request)
+
+        return {
+            "status": "success",
+            "risk_assessment": result
+        }
 
     except Exception as error:
         raise HTTPException(
