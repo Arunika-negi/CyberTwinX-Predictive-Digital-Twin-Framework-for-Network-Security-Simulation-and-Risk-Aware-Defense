@@ -22,3 +22,12 @@ class RiskAssessmentRequest(BaseModel):
 
     # True when the CVE is listed in CISA KEV
     kev_listed: bool = False
+
+
+class AssetRiskAssessmentRequest(BaseModel):
+    asset: Asset
+
+    # Context supplied by the network analysis module
+    exposure_score: float = Field(default=0, ge=0, le=1)
+    reachable_from_attacker: bool = False
+    attack_path_position: float = Field(default=0, ge=0, le=1)

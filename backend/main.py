@@ -1,3 +1,5 @@
+from backend.models.risk import AssetRiskAssessmentRequest
+from backend.services.vulnerability_matcher import match_asset_services
 from backend.models.risk import RiskAssessmentRequest
 
 from backend.services.risk_engine import (
@@ -121,6 +123,68 @@ def assess_risk(request: RiskAssessmentRequest):
         return {
             "status": "success",
             "risk_assessment": result
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error)
+        )
+
+
+
+@app.post("/risk/assess-asset")
+def assess_asset_risk(request: AssetRiskAssessmentRequest):
+    try:
+        # Find vulnerabilities for discovered services
+        matching_results = match_asset_services(request.asset)
+
+        assessments = []
+
+        for service in matching_results["service_results"]:
+            for vulnerability in service["matches"]:
+
+                # Only assess confirmed affected versions
+                if vulnerability["match_status"] != "confirmed_affected_range":
+                    continue
+
+                if vulnerability["cvss_score"] is None:
+                    continue
+
+                risk_request = RiskAssessmentRequest(
+                    asset=request.asset,
+                    cve_id=vulnerability["cve_id"],
+                    cvss_score=vulnerability["cvss_score"],
+                    exposure_score=request.exposure_score,
+                    reachable_from_attacker=request.reachable_from_attacker,
+                    attack_path_position=request.attack_path_position,
+                    kev_listed=vulnerability["kev_listed"]
+                )
+
+                risk_result = calculate_contextual_risk(
+                    risk_request
+                )
+
+                assessments.append({
+                    "service_product": service["product"],
+                    "service_version": service["version"],
+                    "vulnerability": vulnerability,
+                    "risk_assessment": risk_result
+                })
+
+        assessments.sort(
+            key=lambda item: item["risk_assessment"][
+                "contextual_risk_score"
+            ],
+            reverse=True
+        )
+
+        return {
+            "status": "success",
+            "asset_id": request.asset.asset_id,
+            "asset_name": request.asset.name,
+            "total_confirmed_vulnerabilities": len(assessments),
+            "risk_assessments": assessments
         }
 
     except Exception as error:

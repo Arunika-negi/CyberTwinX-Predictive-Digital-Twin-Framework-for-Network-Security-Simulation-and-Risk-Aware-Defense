@@ -96,3 +96,36 @@ def fetch_cve(cve_id: str):
         "cvss_version": cvss_version,
         "source": "NVD"
     }
+
+
+def search_nvd_product(product: str, results_per_page: int = 20):
+    """
+    Search NVD for CVE candidates associated with a product.
+    Returns raw CVE records so the matcher can inspect CPE ranges.
+    """
+    api_key = os.getenv("NVD_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("NVD_API_KEY is missing from .env")
+
+    if not product or not product.strip():
+        raise ValueError("Product name cannot be empty")
+
+    response = requests.get(
+        NVD_API_URL,
+        headers={"apiKey": api_key},
+        params={
+            "keywordSearch": product.strip(),
+            "resultsPerPage": results_per_page
+        },
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    return [
+        item["cve"]
+        for item in data.get("vulnerabilities", [])
+    ]
