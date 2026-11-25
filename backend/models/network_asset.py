@@ -1,6 +1,7 @@
-from typing import Optional, List
 
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class NetworkAddress(BaseModel):
@@ -18,7 +19,7 @@ class NetworkService(BaseModel):
     ostype: Optional[str] = None
     method: Optional[str] = None
     confidence: Optional[str] = None
-    cpe: List[str] = []
+    cpe: list[str] = Field(default_factory=list)
 
 
 class NetworkPort(BaseModel):
@@ -37,10 +38,10 @@ class ExtraPortCount(BaseModel):
 class NetworkAsset(BaseModel):
     status: Optional[str] = None
     addresses: NetworkAddress
-    hostnames: List[str] = []
-    os_matches: List[dict] = []
-    ports: List[NetworkPort] = []
-    extraports: List[ExtraPortCount] = []
+    hostnames: list[str] = Field(default_factory=list)
+    os_matches: list[dict] = Field(default_factory=list)
+    ports: list[NetworkPort] = Field(default_factory=list)
+    extraports: list[ExtraPortCount] = Field(default_factory=list)
 
 
 class NetworkScanSummary(BaseModel):
@@ -60,5 +61,5 @@ class NetworkInventory(BaseModel):
     nmap_version: Optional[str] = None
     scan_arguments: Optional[str] = None
     start_time: Optional[str] = None
-    hosts: List[NetworkAsset] = []
+    hosts: list[NetworkAsset] = Field(default_factory=list)
     summary: NetworkScanSummary
